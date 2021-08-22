@@ -69,7 +69,7 @@ class BaseAscII:
         """未识别的十六进制编码"""
         cix = [ci[ding].upper() for ci in ascii_res]
         if not (data.upper() in cix):
-            bai.append('?{}?'.format(data))
+            bai.append('[{}]'.format(data))
 
         for ci in ascii_res:
             en_to_list = list(ci)
@@ -86,7 +86,6 @@ def jm(data):
     bai = BaseAscII()
     hex_ascii_bt = []
     hex_ascii = binascii.hexlify(data)
-    print('hex_ascii', data)
     for i in range(int(len(hex_ascii) / 2)):
         bt_16 = hex_ascii[2 * i:2 * (i + 1)].decode('utf-8', 'ignore')
         hex_ascii_bt.append(bt_16)
@@ -96,7 +95,12 @@ def jm(data):
 
 
 if __name__ == '__main__':
-    jm(b'\x8f:\x00\x8c:')
+    jm(b'\x00\t\xfc\x02\x07\x00\x05')
+
+    """
+    127.0.0.1\x00FML2\x00\t\xfc\x02\x07\x00\x05junsi
+    """
+
 """
 二进制	十进制	十六进制	缩写	可以显示的表示法	名称/意义
 0000 0000	0	00	NUL	␀	空字符（Null）
