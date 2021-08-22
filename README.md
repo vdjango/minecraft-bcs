@@ -1,10 +1,11 @@
 ![minecraft](images/login.png)
 
 # Minecraft 客户端/服务端协议解析（持续更新）
+> 协议版本 1.16.5
 
 
 
-## 协议版本 1.16.5
+## 协议解析
 
 > 数据为十六进制数据流形式
 
@@ -101,11 +102,10 @@
 
 * **客户端发送**
 
-`\x16\x00\xf2\x05\x0f127.0.0.1\x00FML2\x00\t\xfc\x02\x07\x00\x05junsi`
-
 ```shell
 # 玩家名称: junsi 
 # 服务器地址: 127.0.0.1
+原 \x16\x00\xf2\x05\x0f127.0.0.1\x00FML2\x00\t\xfc\x02\x07\x00\x05junsi
 密 16 00 f2 05 0f 00 127.0.0.1 FML2 00 09 fc 02 07 00 05 junsi
 解 SYN NUL [F2] ENQ SI NUL 127.0.0.1 FML2 NUL HT [FC] STX BEL NUL ENQ junsi
 ```
@@ -123,3 +123,81 @@
 ```shell
 # 
 ```
+
+
+## 基于协议的客户端/服务端操作
+> 简单例子： 打开客户端多人游戏，会请求服务端服务器信息
+>
+> 创建 tcp socet 客户端监听25565端口，主动发送以下数据时会得到服务端的响应，具体格式如下
+> 
+> 请浏览 ping.json
+
+* **Python3.6 代码示例**
+
+> 需要安装 twisted 
+> 
+> `pip3.6 install twisted`
+
+```python
+from twisted.internet import reactor, protocol
+
+
+class TSServProtocol(protocol.Protocol):
+    c = None
+
+    def connectionMade(self):
+        '''
+        当客户端连接的时候会执行该方法
+        :return:
+        '''
+        self.c = self.transport.getPeer().host
+        print("来自的{}链接:".format(self.c))
+
+    def dataReceived(self, data):
+        '''
+        接收到客户端的数据
+        :param data:
+        :return:
+        '''
+
+        print("来自客户端:{}".format(data))
+        # self.transport.write(data)
+        pass
+
+
+class MinecraftProtocol(protocol.Protocol):
+    def send_message(self):
+        send = b'\x16\x00\xf2\x05\x0f127.0.0.1\x00FML2\x00\t\xfc\x01\x01\x00'
+        print('发送数据 {}'.format(send))
+        self.transport.write(send)
+
+    def connectionMade(self):
+        """
+        创建连接时
+        :return:
+        """
+        self.send_message()
+
+    def dataReceived(self, data):
+        """
+        收到数据时
+        :param data:
+        :return:
+        """
+        print('收到数据', data)
+        self.transport.loseConnection()  # 关闭连接
+        print('done', )
+
+
+class MinecraftProtocolFactory(protocol.ClientFactory):
+    protocol = MinecraftProtocol
+    clientConnctionLost = clientConnctionFailed = lambda self, connector, reason: reactor.stop()
+
+
+if __name__ == '__main__':
+    reactor.connectTCP('127.0.0.1', 25565, MinecraftProtocolFactory())
+    reactor.run()
+
+```
+
+

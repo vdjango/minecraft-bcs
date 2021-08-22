@@ -73,7 +73,6 @@ class EchoClientFactory(ClientFactory):
     def startedConnecting(self, connector):
         print('Started to connect.')
 
-
         # stdout.write('127.0.0.1 FML2 junsi')
 
     def buildProtocol(self, addr):
@@ -97,4 +96,3 @@ if __name__ == '__main__':
 
     reactor.connectTCP('127.0.0.1', 25565, EchoClientFactory())
     reactor.run()
-
